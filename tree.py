@@ -1,3 +1,7 @@
+import json
+from enum import Enum
+import copy
+
 class NodeType(Enum):
     NODE = 0
     LEAF = 1
