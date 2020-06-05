@@ -1,10 +1,12 @@
 import json
 from enum import Enum
 import copy
+import pandas as pd
 
 class NodeType(Enum):
     NODE = 0
     LEAF = 1
+
 
 class Node():
     def __init__(self, data_dict = None):
@@ -28,8 +30,10 @@ class Node():
         return d
 
     def from_dict(self, d):
-        self.branch_attrs = d['branch_attrs']
-        self.node_attrs = d['node_attrs']
+        if 'branch_attrs' in d:
+            self.branch_attrs = d['branch_attrs']
+        if 'node_attrs' in d:
+            self.node_attrs = d['node_attrs']
         self.name = d['name']
 
         if 'children' in d and len(d['children']) > 0:
@@ -68,6 +72,7 @@ class Node():
         else:
             self.branch_attrs[attr] = {'value': value}
 
+
 class Tree():
     def __init__(self, data_dict = None):
         self.root = None
@@ -84,7 +89,7 @@ class Tree():
 
     def set_node_attr(self, attr, state):
         for node in self.nodes:
-            self.node_attrs[attr] = state
+            node.node_attrs[attr] = state
 
     def subset_tree(self, nodes_to_keep):
         for node in self.nodes:
@@ -96,6 +101,39 @@ class Tree():
                         node.type == NodeType.LEAF or len(node.children) > 0]
         self.subset_tree(nodes_to_keep)
 
+    def add_metadata(self, df):
+        """Merge metadata file containing a 'strain' column."""
+        df.rename({col: '_'.join(col.split()) for col in df.columns},
+                  axis=1,
+                  inplace=True)
+        df.set_index('strain', inplace=True)
+
+        for node in self.nodes:
+            if node.name in df.index:
+                for col in df.columns:
+                    val = df.loc[node.name, col]
+                    try:
+                        if not pd.isnull(val):
+                            node.set_attr(col, val)
+                    except:
+                        print("bad value")
+                        print(col, val)
+                        continue
+
+    def filter_nodes(self, attr, value):
+        return [node for node in self.nodes if
+                node.get_attr(attr) == value]
+
+    def rename_nodes(self, attr, save_attr=None):
+        """Reset name to value of attr field.
+        If save_attr is specified, save current name to that field."""
+        for node in self.nodes:
+            val = node.get_attr(attr)
+            if val:
+                node.name = val
+                if save_attr:
+                    node.set_attr(save_attr, val)
+
 def walk_to_root(nodes):
     stack = nodes.copy()
     done = []
@@ -106,7 +144,8 @@ def walk_to_root(nodes):
         done.append(node)
     return done
 
-def walk_down(nodes, mode = "steps", depth = 1):
+
+def walk_down(nodes, mode = "steps", depth = 1, filter = None):
     if mode == 'steps':
         levels = [nodes.copy()]
         for i in range(depth):
@@ -114,7 +153,7 @@ def walk_down(nodes, mode = "steps", depth = 1):
             for node in levels[-1]:
                 next_level.extend(node.children)
             levels.append(next_level)
-        return [node for level in levels for node in level]
+        done = [node for level in levels for node in level]
     if mode == "mutations":
         levels = [nodes.copy()] + [[]]*depth
         done = nodes.copy()
@@ -129,7 +168,11 @@ def walk_down(nodes, mode = "steps", depth = 1):
                             levels[distance].append(c)
                             done.append(c)
                 j += 1
-        return done
+
+    if filter:
+        done = [n for n in done if filter(n)]
+
+    return done
 
 def num_mutations(node):
     if 'mutations' in node.branch_attrs:
