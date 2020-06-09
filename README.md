@@ -4,4 +4,14 @@ Sometimes it is necessary to postprocess an auspice JSON to add additional metad
 
 * `tree.py` contains a class for turning the JSON tree into a python object.
 * `meta_munge.py` contains functions for modifying foibles of the GISAID metadata (such as the Grand Princess cruise ship, or various spellings of the same county).
-* `scc.ipynb` is an example notebook postprocessing an internal RR run into a JSON for use by the county DPH.
+
+Usage:
+
+```
+python munge.py \
+            --json ~/src/covidtracker/internal/200605/ncov_with_accessions.json \
+            --external-codes ~/src/covidtracker/internal/200601/external_codes_metadata_tsv.tsv \
+            --county 'Santa Clara' \
+            --node-name Accession_ID \
+            --scale ancestors
+```
