@@ -134,6 +134,7 @@ class Tree():
                 if save_attr:
                     node.set_attr(save_attr, val)
 
+
 def walk_to_root(nodes):
     stack = nodes.copy()
     done = []

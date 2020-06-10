@@ -92,7 +92,7 @@ def update_json_meta(js, tree, df, county):
 
     js['meta']['display_defaults']['color_by'] = 'County'
     js['meta']['display_defaults']['geo_resolution'] = 'location'
-    js['meta']['display_defaults']['distance_meaasure'] = 'div'
+    js['meta']['display_defaults']['distance_measure'] = 'div'
     js['meta']['display_defaults']['panels'] = ['tree']
 
     with open('/Users/josh/src/covidtracker/internal/covidtrackerca.md',
