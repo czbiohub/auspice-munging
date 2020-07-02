@@ -94,7 +94,7 @@ def main():
 
     if args.output is None:
         outfile = (os.path.dirname(args.json) + '/'
-                   + 'with_metadata_for_'
+                   + 'tree_with_metadata_for_'
                    + ("_".join(args.county.split()) if args.county else "all")
                    + '.json')
         print(outfile)
