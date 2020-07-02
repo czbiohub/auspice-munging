@@ -73,6 +73,14 @@ class Node():
             self.branch_attrs[attr] = {'value': value}
 
 
+    def check(self, conditions):
+        """Check if the node satisfies conditions, encoded as
+        {attr: value} elements in a dict."""
+        for attr in conditions.keys():
+            if self.get_attr(attr) != conditions[attr]:
+                return False
+        return True
+
 class Tree():
     def __init__(self, data_dict = None):
         self.root = None
@@ -124,15 +132,20 @@ class Tree():
         return [node for node in self.nodes if
                 node.get_attr(attr) == value]
 
-    def rename_nodes(self, attr, save_attr=None):
+    def rename_nodes(self, attr, save_attr=None, filter=None):
         """Reset name to value of attr field.
         If save_attr is specified, save current name to that field."""
         for node in self.nodes:
             val = node.get_attr(attr)
+            if filter and not node.check(filter):
+                continue
             if val:
-                node.name = val
+                sanitized_val = "-".join(val.split())
+                print("renaming node ", node.name, " to ", sanitized_val)
                 if save_attr:
-                    node.set_attr(save_attr, val)
+                    node.set_attr(save_attr, node.name)
+                node.name = sanitized_val
+
 
 
 def walk_to_root(nodes):
