@@ -14,7 +14,7 @@ python add_private_metadata.py \
     --submitted-sequences ~/src/covid19-submissions/to_submit/submitted_sequences.tsv \
     --dph-ids dph_czb_ids.csv \
     --county 'Santa Clara' \
-    --node-name Partner_ID
+    --node-name external_accession
 ```
 
 and
