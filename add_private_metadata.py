@@ -57,20 +57,21 @@ def main():
 
     gisaid_to_czb = read_table(args.submitted_sequences)
     gisaid_to_czb['strain'] = gisaid_to_czb['gisaid_name'].apply(lambda x: x[8:] if isinstance(x, str) else x)
+    gisaid_to_czb.rename({'CZB_ID': 'czb_id'}, axis = 1, inplace=True)
 
     czb_to_dph = read_table(args.dph_ids)
 
-    df = gisaid_to_czb[['strain', 'CZB_ID']].merge(
-            czb_to_dph[['CZB_ID', 'Partner_ID']],
-            on='CZB_ID',
+    df = gisaid_to_czb[['strain', 'czb_id']].merge(
+            czb_to_dph[['czb_id', 'external_accession']],
+            on='czb_id',
             how='left')
 
     if args.metadata:
         metadata = read_table(args.metadata)
         metadata.rename({col: '_'.join(col.split()) for col in metadata.columns}, axis=1,
                   inplace=True)
-        if 'Partner_ID' in metadata.columns:
-            key = 'Partner_ID'
+        if 'external_accession' in metadata.columns:
+            key = 'external_accession'
         elif 'strain' in metadata.columns:
             key = 'strain'
         else:
@@ -78,7 +79,7 @@ def main():
         df = df.merge(metadata, on=key, how='left')
 
         for field in metadata.columns:
-            if field not in ['strain', 'Partner_ID', 'CZB_ID']:
+            if field not in ['strain', 'external_accession', 'czb_id']:
                 coloring = {'key': field, 'title': field.capitalize(),
                             'type': 'categorical'}
                 js['meta']['colorings'].insert(0, coloring)
