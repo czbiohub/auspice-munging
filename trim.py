@@ -6,17 +6,22 @@ import os
 from tree import *
 import copy
 
-def trim_tree(tree, county, scale):
+def trim_tree(tree, county, filter, scale):
     if scale is None:
         return tree
 
     tree = copy.deepcopy(tree)
 
-    if scale == 'local':
+    if county:
+        print(f'Filtering leaves to county {county}')
         leaves = tree.filter_nodes('county', county)
+    elif filter:
+        print(f'Filtering leaves to those matching {filter[0]}: {filter[1]}')
+        leaves = tree.filter_nodes(filter[0], filter[1])
+
+    if scale == 'local':
         nodes_to_keep = walk_to_root(leaves)
     elif scale == 'ancestors':
-        leaves = tree.filter_nodes('county', county)
         nodes_to_keep = walk_to_root(leaves)
         nodes_to_keep = walk_down(nodes_to_keep, mode='mutations', depth=0)
         nodes_to_keep = walk_to_root(
@@ -36,6 +41,8 @@ def main():
     parser.add_argument('--county',
                         help='County to filter on. If no county is specified,'
                              'no filtering will be done.', default=None)
+    parser.add_argument('--filter',
+                        help='[Key] [Value] Arbitrary key/value', default=None, nargs=2)
     parser.add_argument('--scale',
                         help='Sets scale of analysis. `local` will show only '
                              'sequences from the county. `ancestors` will show '
@@ -53,7 +60,7 @@ def main():
         js = json.load(fp)
     tree = Tree(js['tree'])
 
-    tree = trim_tree(tree, args.county, args.scale)
+    tree = trim_tree(tree, args.county, args.filter, args.scale)
 
     if args.county:
         js['meta']['title'] = 'COVID Tracker CA: ' + args.county
