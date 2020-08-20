@@ -139,7 +139,7 @@ class Tree():
             val = node.get_attr(attr)
             if filter and not node.check(filter):
                 continue
-            if val:
+            if val and val != "None":
                 sanitized_val = "-".join(val.split())
                 print("renaming node ", node.name, " to ", sanitized_val)
                 if save_attr:
