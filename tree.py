@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-import copy
+import json
 import pandas as pd
 
 class NodeType(Enum):
@@ -146,6 +146,26 @@ class Tree():
                     node.set_attr(save_attr, node.name)
                 node.name = sanitized_val
 
+    def drop_by_name(self, names_to_drop, verbose=False):
+        if verbose:
+            n_leaves_before = self.n_leaves()
+
+        nodes_to_keep = [n for n in self.nodes if n.type == NodeType.LEAF and
+                         n.name not in names_to_drop]
+        nodes_to_keep = walk_to_root(nodes_to_keep)
+        if self.root not in nodes_to_keep:
+            nodes_to_keep.append(self.root)
+
+        self.subset_tree(nodes_to_keep)
+
+        if verbose:
+            n_leaves_after = self.n_leaves()
+
+            print("Removing ", n_leaves_before - n_leaves_after,
+                  " of ", n_leaves_before, " genomes.")
+
+    def n_leaves(self):
+        return len([n for n in self.nodes if n.type == NodeType.LEAF])
 
 
 def walk_to_root(nodes):
@@ -155,6 +175,18 @@ def walk_to_root(nodes):
         node = stack.pop()
         if node.parent and node.parent not in stack and node.parent not in done:
             stack.append(node.parent)
+        done.append(node)
+    return done
+
+
+def walk_to_leaves(nodes):
+    stack = nodes.copy()
+    done = []
+    while stack:
+        node = stack.pop()
+        for child in node.children:
+            if child not in stack and child not in done:
+                stack.append(child)
         done.append(node)
     return done
 
@@ -193,3 +225,25 @@ def num_mutations(node):
         if 'nuc' in node.branch_attrs['mutations']:
             return len(node.branch_attrs['mutations']['nuc'])
     return 0
+
+
+class Auspice():
+    def __init__(self, filename):
+        self.tree = None
+        self.js = None
+        self.read(filename)
+
+    def read(self, filename):
+        with open(filename, 'r') as fp:
+            self.js = json.load(fp)
+        self.tree = Tree(self.js['tree'])
+
+    def write(self, filename):
+        with open(filename, 'w') as fp:
+            json.dump(
+                {"meta": self.js['meta'],
+                 "version": self.js['version'],
+                 "tree": self.tree.to_dict() if self.tree else self.js['tree']},
+                fp,
+                indent=2
+            )

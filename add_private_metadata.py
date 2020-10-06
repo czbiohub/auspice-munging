@@ -21,8 +21,8 @@ def update_json_meta(js, tree, df, county):
         if key == 'age':
             continue
         order_type = 'categorical'
-        # if key in ['rooms', 'num_in_hh']:
-        #     order_type = 'continuous'
+        # if key in ['n_alt', 'n_ref', 'log_n_alt', 'log_n_ref', 'log_diff']:
+        # order_type = 'continuous'
         coloring = {'key': key, 'title': key.capitalize(), 'type': order_type}
         js['meta']['colorings'].insert(0, coloring)
         js['meta']['filters'].insert(0, key)
