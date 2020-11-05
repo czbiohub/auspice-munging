@@ -3,7 +3,7 @@
 import argparse
 import pandas as pd
 import os
-from tree import *
+from auspicemunging.tree import *
 import copy
 
 def trim_tree(tree, county=None, filter=None, scale=None):
