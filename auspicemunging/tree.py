@@ -114,7 +114,7 @@ class Tree():
         df.rename({col: '_'.join(col.split()) for col in df.columns},
                   axis=1,
                   inplace=True)
-        df.set_index('strain', inplace=True)
+        df = df.set_index('strain')
 
         for node in self.nodes:
             if node.name in df.index:
